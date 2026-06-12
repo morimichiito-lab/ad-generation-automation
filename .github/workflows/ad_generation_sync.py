@@ -86,22 +86,38 @@ def get_sheets_service():
 
 
 def append_to_sheets(service, sheet_id, data_df):
-    print("📝 スプレッドシートに追記中...")
+    print("📝 スプレッドシートを置き換え中...")
 
     try:
+        # NaN値を空文字列に変換
         data_df = data_df.fillna("")
-        values = [data_df.columns.tolist()] + data_df.values.tolist()
-        values = [[str(cell) for cell in row] for row in values]
+        
+        # データ行のみを準備（ヘッダーは除外）
+        data_values = data_df.values.tolist()
+        
+        # すべての値を文字列に変換
+        data_values = [[str(cell) for cell in row] for row in data_values]
 
-        request = service.spreadsheets().values().append(
+        # ステップ1：A2以下のデータを削除
+        service.spreadsheets().values().clear(
             spreadsheetId=sheet_id,
-            range=f"'{SHEET_NAME}'!A:O",
-            valueInputOption="RAW",
-            body={"values": values}
-        )
-        result = request.execute()
-        print(f"✅ スプレッドシート更新成功（{len(values)-1}行追記）")
-        return result
+            range=f"'{SHEET_NAME}'!A2:O"
+        ).execute()
+
+        # ステップ2：新しいデータを書き込む
+        if len(data_values) > 0:
+            request = service.spreadsheets().values().update(
+                spreadsheetId=sheet_id,
+                range=f"'{SHEET_NAME}'!A2:O",
+                valueInputOption="RAW",
+                body={"values": data_values}
+            )
+            result = request.execute()
+            print(f"✅ スプレッドシート置き換え成功（{len(data_values)}行）")
+            return result
+        else:
+            print("⚠️ データが空です")
+            
     except HttpError as e:
         print(f"❌ スプレッドシート更新失敗: {e}")
         raise

@@ -31,5 +31,11 @@ jobs:
           GOOGLE_SHEETS_ID: ${{ secrets.GOOGLE_SHEETS_ID }}
           SERVICE_ACCOUNT_JSON_PATH: ./service_account.json
         run: |
-          echo "${{ secrets.SERVICE_ACCOUNT_JSON }}" > service_account.json
-          python ad_generation_sync.py
+              python3 << 'PYSCRIPT'
+import json
+import os
+sa_json = os.getenv('SERVICE_ACCOUNT_JSON', '{}')
+if sa_json and sa_json != '{}':
+    with open('service_account.json', 'w') as f:
+        f.write(sa_json)
+PYSCRIPT

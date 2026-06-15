@@ -20,6 +20,9 @@ jobs:
       - name: Install dependencies
         run: |
           pip install requests==2.31.0 google-auth==2.26.1 google-api-python-client==2.107.0 pandas==2.1.4 python-dotenv==1.0.0
+
+      - name: List files
+        run: ls -la
       
       - name: Run sync script
         env:
